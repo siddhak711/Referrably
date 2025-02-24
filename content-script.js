@@ -1,19 +1,52 @@
-// content-script.js
 (function() {
-    const url = window.location.href;
-  
-    // Check if the URL suggests we are on a job listing (very naive approach)
-    const isJobListing = url.includes('indeed.com') || url.includes('linkedin.com/jobs') || url.includes('glassdoor.com');
-  
-    if (isJobListing) {
-      // We can do something like create a small floating tooltip on the page
-      // or send a message to the background or popup to notify the extension
-      createReferrablyTooltip();
+  const url = window.location.href;
+  const isJobListing = url.includes('linkedin.com/jobs') || url.includes('indeed.com') || url.includes('glassdoor.com');
+
+  if (isJobListing) {
+    // Store the current company name
+    let currentCompanyName = getCompanyName();
+    updateCompany(currentCompanyName);
+
+    // Use MutationObserver to watch for changes in the document.
+    const observer = new MutationObserver(mutations => {
+      const newCompanyName = getCompanyName();
+      if (newCompanyName !== currentCompanyName) {
+        currentCompanyName = newCompanyName;
+        updateCompany(currentCompanyName);
+      }
+    });
+
+    // Observe changes to the entire document body. Adjust options if needed.
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Helper function to extract the company name
+  function getCompanyName() {
+    let companyName = 'Unknown Company';
+    if (window.location.href.includes('indeed.com')) {
+      // Look for an anchor tag whose href contains "/cmp/"
+      const indeedCompanyElement = document.querySelector('a[href*="/cmp/"]');
+      if (indeedCompanyElement) {
+        companyName = indeedCompanyElement.innerText.trim();
+      }
+    } else {
+      // For LinkedIn or Glassdoor, use the original selectors.
+      const companyElement = document.querySelector('.jobs-details-top-card__company-name') || document.querySelector('.jobCompany');
+      if (companyElement) {
+        companyName = companyElement.innerText.trim();
+      }
     }
-  
-    function createReferrablyTooltip() {
-      const tooltip = document.createElement('div');
-      tooltip.innerText = 'Referrably: We found potential connections for referrals!';
+    return companyName;
+  }
+
+  // Update chrome storage and the tooltip display
+  function updateCompany(company) {
+    chrome.storage.local.set({ currentJobCompany: company });
+
+    let tooltip = document.getElementById('referrably-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'referrably-tooltip';
       tooltip.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -24,12 +57,11 @@
         z-index: 999999;
         cursor: pointer;
       `;
-      document.body.appendChild(tooltip);
-  
       tooltip.addEventListener('click', () => {
-        // Show more detailed info, or open your extension's popup
-        alert('Connections: ... (You will parse your CSV data here)');
+        alert('Open the extension popup to see your referral options.');
       });
+      document.body.appendChild(tooltip);
     }
-  })();
-  
+    tooltip.innerText = `Referrably: Found referral options for ${company}!`;
+  }
+})();

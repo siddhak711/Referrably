@@ -2,10 +2,26 @@
 <html>
   <head>
     <title>Referrably Popup</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 10px; }
+      .connection { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #ccc; }
+      .btn { margin-right: 5px; }
+      #messageEditor { display: none; margin-top: 10px; }
+    </style>
   </head>
   <body>
     <h1>Referrably</h1>
+    <div id="jobInfo"></div>
     <ul id="connections"></ul>
+
+    <!-- Message Editor -->
+    <div id="messageEditor">
+      <h3>Edit Message</h3>
+      <textarea id="messageText" rows="4" cols="30"></textarea><br>
+      <button id="sendMessageBtn">Send Message</button>
+      <button id="cancelEditBtn">Cancel</button>
+    </div>
+
     <script src="popup.js"></script>
   </body>
 </html>
