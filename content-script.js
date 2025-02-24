@@ -3,75 +3,122 @@
   const isJobListing = url.includes('linkedin.com/jobs') || url.includes('indeed.com') || url.includes('glassdoor.com');
 
   if (isJobListing) {
-    // Store the current company name and update the tooltip
     let currentCompanyName = getCompanyName();
     updateCompany(currentCompanyName);
 
-    // Use MutationObserver to watch for changes in the document.
-    const observer = new MutationObserver(mutations => {
+    // Watch for changes to the DOM in case the job listing updates dynamically
+    const observer = new MutationObserver(() => {
       const newCompanyName = getCompanyName();
       if (newCompanyName !== currentCompanyName) {
         currentCompanyName = newCompanyName;
         updateCompany(currentCompanyName);
       }
     });
-
-    // Observe changes to the entire document body.
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
+  // Clean a company name by lowercasing and removing non-alphanumeric characters
+  function cleanCompanyName(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  // Returns true if the cleaned versions of company1 and company2 appear to match
+  function isMatchingCompany(company1, company2) {
+    const cleaned1 = cleanCompanyName(company1);
+    const cleaned2 = cleanCompanyName(company2);
+    // Check if either string is contained in the other
+    return cleaned1.includes(cleaned2) || cleaned2.includes(cleaned1);
+  }
+
+
+  // ------------------------------------------------------------
+  //                DETECT COMPANY NAME PER SITE
+  // ------------------------------------------------------------
   function getCompanyName() {
     let companyName = '';
+
+    // ------------------ Indeed ------------------ //
     if (window.location.href.includes('indeed.com')) {
-      // Look for the anchor tag with "/cmp/" in its href
-      const cmpLink = document.querySelector('a[href*="/cmp/"]');
-      if (cmpLink) {
-        // Try using the aria-label attribute first.
-        let label = cmpLink.getAttribute('aria-label') || '';
-        // Remove trailing " (opens in a new tab)" if present.
-        label = label.replace(/\s*\(opens in a new tab\)/i, '').trim();
-        if (label) {
-          companyName = label;
-        } else {
-          // Fallback to innerText if aria-label didn't yield a value.
-          companyName = cmpLink.innerText.trim();
+      const companyContainer = document.querySelector('.jobsearch-InlineCompanyRating');
+      if (companyContainer) {
+        const spanEl = companyContainer.querySelector('span');
+        if (spanEl) {
+          companyName = spanEl.innerText.trim();
         }
       }
-      // If no anchor was found or it returned an empty string,
-      // try a fallback with static text elements.
       if (!companyName) {
-        const staticEl = document.querySelector('span.css-1u7c3eu.e1wnkr790') ||
-                         document.querySelector('span.css-1u7c3eu');
-        if (staticEl) {
-          companyName = staticEl.innerText.trim();
+        const cmpLink = document.querySelector('a[href*="/cmp/"]');
+        if (cmpLink) {
+          let label = cmpLink.getAttribute('aria-label') || '';
+          label = label.replace(/\s*\(opens in a new tab\)/i, '').trim();
+          companyName = label || cmpLink.innerText.trim();
         }
       }
-    } else {
-      // For LinkedIn or Glassdoor, use the original selectors.
-      const compEl = document.querySelector('.jobs-details-top-card__company-name') ||
-                     document.querySelector('.jobCompany');
+    }
+
+    // ------------------ LinkedIn ------------------ //
+    else if (window.location.href.includes('linkedin.com/jobs')) {
+      /**
+       * We try multiple LinkedIn job-page selectors in order.
+       * If we find "Google logo", we remove the word "logo" to avoid "Google logo".
+       */
+      let compEl =
+        document.querySelector('.jobs-details-jobs-unified-top-card__company-name a') ||
+        document.querySelector('.jobs-details-jobs-unified-top-card__company-name') ||
+        document.querySelector('.jobs-unified-top-card__company-name a') ||
+        document.querySelector('.jobs-unified-top-card__company-name') ||
+        document.querySelector('.jobs-unified-top-card__subtitle a') ||
+        document.querySelector('a[href*="/company/"]') ||
+        document.querySelector('.topcard__org-name-link') ||
+        document.querySelector('[data-test-about-company-name-link]');
+
+      if (compEl) {
+        // Check aria-label first
+        let ariaLabel = compEl.getAttribute('aria-label');
+        if (ariaLabel && ariaLabel.trim()) {
+          // Remove "logo" if it appears
+          let label = ariaLabel.trim().replace(/\blogo\b/i, '').trim();
+          if (label) {
+            companyName = label;
+          } else {
+            // Fallback to the text if label becomes empty
+            let text = compEl.innerText.trim().replace(/\blogo\b/i, '').trim();
+            companyName = text;
+          }
+        } else {
+          // If no aria-label, just use the text content
+          let text = compEl.innerText.trim().replace(/\blogo\b/i, '').trim();
+          companyName = text;
+        }
+      }
+    }
+
+    // ------------------ Glassdoor ------------------ //
+    else if (window.location.href.includes('glassdoor.com')) {
+      // Example placeholder; update the selector if needed.
+      const compEl = document.querySelector('.css-xx');
       if (compEl) {
         companyName = compEl.innerText.trim();
       }
     }
+
     return companyName || 'Unknown Company';
   }
-  
-  
-  
 
-  // Update chrome storage and the tooltip display based on matching connections
+  // ------------------------------------------------------------
+  //    UPDATE STORAGE & SHOW TOOLTIP BASED ON CONNECTIONS
+  // ------------------------------------------------------------
   function updateCompany(company) {
     chrome.storage.local.set({ currentJobCompany: company });
 
-    // Retrieve connections from storage and filter them based on the company name.
     chrome.storage.local.get(['connectionsData'], (result) => {
       const connections = result.connectionsData || [];
       const target = company.trim().toLowerCase();
+
       const relevant = connections.filter(conn => {
         if (!conn["Company"]) return false;
-        return conn["Company"].trim().toLowerCase().includes(target);
-      });
+        return isMatchingCompany(conn["Company"], company);
+      });      
 
       let tooltip = document.getElementById('referrably-tooltip');
       if (!tooltip) {
@@ -92,7 +139,7 @@
         });
         document.body.appendChild(tooltip);
       }
-      // Update tooltip text based on whether any matching connections were found.
+
       if (relevant.length > 0) {
         tooltip.innerText = `Referrably: Found ${relevant.length} referral option(s) for ${company}!`;
       } else {

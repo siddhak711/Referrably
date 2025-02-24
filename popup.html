@@ -2,24 +2,144 @@
 <html>
   <head>
     <title>Referrably Popup</title>
+    <!-- Use a modern, clean font -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap" rel="stylesheet">
     <style>
-      body { font-family: Arial, sans-serif; margin: 10px; }
-      .connection { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #ccc; }
-      .btn { margin-right: 5px; }
-      #messageEditor { display: none; margin-top: 10px; }
+      /* Overall Page Style */
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #f0f2f5; /* Soft background */
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* Container with a white card background */
+      .container {
+        /* Adjust the width to your preference */
+        width: 420px; 
+        margin: 20px auto;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+
+      /* Header with a subtle gradient background */
+      header {
+        background: linear-gradient(45deg, #5567DD, #00c6ff);
+        color: #fff;
+        padding: 16px;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      /* Company Info */
+      #jobInfo {
+        text-align: center;
+        padding: 16px;
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+        border-bottom: 1px solid #eee;
+      }
+
+      /* Connection List */
+      ul#connections {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      ul#connections li.connection {
+        padding: 16px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* Last connection item: remove bottom border */
+      ul#connections li.connection:last-child {
+        border-bottom: none;
+      }
+
+      /* Connection Name + Company */
+      .connection-info {
+        font-size: 16px;
+        font-weight: 500;
+        color: #444;
+      }
+      .connection-company {
+        color: #777;
+        font-size: 14px;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-block;
+        background: #5567DD;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .btn:hover {
+        background: #4454b2; /* Slightly darker on hover */
+      }
+
+      /* Message Editor */
+      #messageEditor {
+        display: none;
+        padding: 16px;
+      }
+      #messageEditor h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+      }
+      #messageText {
+        width: 100%;
+        height: 80px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 8px;
+        resize: vertical;
+        font-family: 'Inter', sans-serif;
+      }
+      #sendMessageBtn, #cancelEditBtn {
+        margin-top: 10px;
+      }
+      /* Space out the buttons in the editor */
+      #sendMessageBtn {
+        margin-right: 8px;
+      }
     </style>
   </head>
   <body>
-    <h1>Referrably</h1>
-    <div id="jobInfo"></div>
-    <ul id="connections"></ul>
+    <div class="container">
+      <header>
+        <h1>Referrably</h1>
+      </header>
 
-    <!-- Message Editor -->
-    <div id="messageEditor">
-      <h3>Edit Message</h3>
-      <textarea id="messageText" rows="4" cols="30"></textarea><br>
-      <button id="sendMessageBtn">Send Message</button>
-      <button id="cancelEditBtn">Cancel</button>
+      <div id="jobInfo">Loading...</div>
+
+      <ul id="connections">
+        <!-- Connection items inserted here by popup.js -->
+      </ul>
+
+      <!-- Message Editor -->
+      <div id="messageEditor">
+        <h3>Edit Message</h3>
+        <textarea id="messageText" placeholder="Type your message..."></textarea><br>
+        <button id="sendMessageBtn" class="btn">Send Message</button>
+        <button id="cancelEditBtn" class="btn">Cancel</button>
+      </div>
     </div>
 
     <script src="popup.js"></script>
