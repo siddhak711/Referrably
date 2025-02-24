@@ -20,34 +20,45 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  // Helper function to extract the company name
   function getCompanyName() {
-    let companyName = 'Unknown Company';
+    let companyName = '';
     if (window.location.href.includes('indeed.com')) {
-      // First try to find the outbound link version
-      const indeedLinkElement = document.querySelector('a[href*="/cmp/"]');
-      if (indeedLinkElement && indeedLinkElement.innerText.trim().length > 0) {
-        companyName = indeedLinkElement.innerText.trim();
-      } else {
-        // Fallback: try to find static text version
-        let staticCompanyElement = document.querySelector('span.css-1u7c3eu.e1wnkr790');
-        if (!staticCompanyElement) {
-          staticCompanyElement = document.querySelector('span.css-1u7c3eu');
+      // Look for the anchor tag with "/cmp/" in its href
+      const cmpLink = document.querySelector('a[href*="/cmp/"]');
+      if (cmpLink) {
+        // Try using the aria-label attribute first.
+        let label = cmpLink.getAttribute('aria-label') || '';
+        // Remove trailing " (opens in a new tab)" if present.
+        label = label.replace(/\s*\(opens in a new tab\)/i, '').trim();
+        if (label) {
+          companyName = label;
+        } else {
+          // Fallback to innerText if aria-label didn't yield a value.
+          companyName = cmpLink.innerText.trim();
         }
-        if (staticCompanyElement && staticCompanyElement.innerText.trim().length > 0) {
-          companyName = staticCompanyElement.innerText.trim();
+      }
+      // If no anchor was found or it returned an empty string,
+      // try a fallback with static text elements.
+      if (!companyName) {
+        const staticEl = document.querySelector('span.css-1u7c3eu.e1wnkr790') ||
+                         document.querySelector('span.css-1u7c3eu');
+        if (staticEl) {
+          companyName = staticEl.innerText.trim();
         }
       }
     } else {
       // For LinkedIn or Glassdoor, use the original selectors.
-      const companyElement = document.querySelector('.jobs-details-top-card__company-name') ||
-                             document.querySelector('.jobCompany');
-      if (companyElement) {
-        companyName = companyElement.innerText.trim();
+      const compEl = document.querySelector('.jobs-details-top-card__company-name') ||
+                     document.querySelector('.jobCompany');
+      if (compEl) {
+        companyName = compEl.innerText.trim();
       }
     }
-    return companyName;
+    return companyName || 'Unknown Company';
   }
+  
+  
+  
 
   // Update chrome storage and the tooltip display based on matching connections
   function updateCompany(company) {
