@@ -11,7 +11,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     connectionsList.innerHTML = ''; // Clear any previous content
 
     if (relevantConnections.length === 0) {
-      connectionsList.innerHTML = '<li>No matching connections found.</li>';
+      connectionsList.innerHTML = jobCompany ? `No connections found at ${jobCompany}.` : 'No job company detected.';
+      
+
     } else {
       relevantConnections.forEach(conn => {
         // Combine first and last name from the CSV
@@ -48,13 +50,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// Filtering function: returns only connections whose "Company" field includes the jobCompany
 function getRelevantConnections(connectionsArray, jobCompany) {
   if (!jobCompany) return [];
+  const target = jobCompany.trim().toLowerCase();
   return connectionsArray.filter(conn => {
-    return conn["Company"] && conn["Company"].toLowerCase().includes(jobCompany.toLowerCase());
+    if (!conn["Company"]) return false;
+    const connCompany = conn["Company"].trim().toLowerCase();
+    return connCompany.includes(target);
   });
 }
+
 
 // Opens the message editor with a pre-created cold message template
 function openMessageEditor(connection) {

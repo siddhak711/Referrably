@@ -5,18 +5,21 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
     alert('Please choose a file first.');
     return;
   }
-
-  const text = await file.text(); // Reads CSV as text
-
-  // Parse CSV using Papa Parse
+  
+  const text = await file.text();
+  
   Papa.parse(text, {
-    header: true,          // Assumes the CSV file has headers like "Name", "Company", "LinkedInURL", etc.
-    skipEmptyLines: true,  // Ignores any empty lines in the CSV
+    header: true,
+    skipEmptyLines: true,
+    // Skip the first 3 rows so that row 4 becomes the header row
+    beforeFirstChunk: function(chunk) {
+      const rows = chunk.split("\n");
+      rows.splice(0, 3); // Remove first 3 rows
+      return rows.join("\n");
+    },
     complete: function(results) {
-      const connectionsArray = results.data; // Array of connection objects
+      const connectionsArray = results.data;
       console.log("Parsed Connections:", connectionsArray);
-
-      // Save the parsed data to chrome.storage
       chrome.storage.local.set({ connectionsData: connectionsArray }, () => {
         alert('Connections CSV uploaded and saved successfully!');
       });
