@@ -58,6 +58,7 @@ function getRelevantConnections(connectionsArray, targetCompany) {
  * Each referral displays:
  *  - The connection's full name in a header.
  *  - The "Company - Position" on a separate line.
+ *  - Two buttons: "View Profile" and "Edit Message".
  */
 function displayResults(finalCompany, relevantConnections) {
   const connectionsList = document.getElementById('connections');
@@ -110,8 +111,9 @@ function displayResults(finalCompany, relevantConnections) {
     const editBtn = document.createElement('button');
     editBtn.className = 'btn';
     editBtn.textContent = 'Edit Message';
+    // Pass the current <li> element to openMessageEditor so it can be appended there.
     editBtn.addEventListener('click', () => {
-      openMessageEditor(conn);
+      openMessageEditor(conn, li);
     });
 
     li.appendChild(viewBtn);
@@ -121,13 +123,22 @@ function displayResults(finalCompany, relevantConnections) {
 }
 
 /**
- * Opens the message editor to allow customization of a referral message.
+ * Opens the message editor inline by moving the #messageEditor element
+ * to be a child of the specific referral <li> element.
  */
-function openMessageEditor(connection) {
+function openMessageEditor(connection, liElement) {
   const editorDiv = document.getElementById('messageEditor');
   const messageText = document.getElementById('messageText');
-  editorDiv.style.display = 'block';
   
+  // Remove the editor from its current parent, if any.
+  if (editorDiv.parentElement) {
+    editorDiv.parentElement.removeChild(editorDiv);
+  }
+  
+  // Append the editor to the specific <li> element.
+  liElement.appendChild(editorDiv);
+  editorDiv.style.display = 'block';
+
   const fullName = connection["First Name"] + " " + connection["Last Name"];
   messageText.value = `Hi ${fullName},\n\nI'm interested in a referral at ${connection["Company"]}. Would you be open to connecting or providing some advice?\n\nThanks,\n[Your Name]`;
 
