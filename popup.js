@@ -58,7 +58,7 @@ function getRelevantConnections(connectionsArray, targetCompany) {
  * Each referral displays:
  *  - The connection's full name in a header.
  *  - The "Company - Position" on a separate line.
- *  - Two buttons: "View Profile" and "Edit Message".
+ *  - Three buttons: "View Profile", "Edit Message", and the new "Send Message".
  */
 function displayResults(finalCompany, relevantConnections) {
   const connectionsList = document.getElementById('connections');
@@ -111,13 +111,22 @@ function displayResults(finalCompany, relevantConnections) {
     const editBtn = document.createElement('button');
     editBtn.className = 'btn';
     editBtn.textContent = 'Edit Message';
-    // Pass the current <li> element to openMessageEditor so it can be appended there.
     editBtn.addEventListener('click', () => {
       openMessageEditor(conn, li);
+    });
+    
+    // New "Send Message" button for one-click messaging.
+    const sendBtn = document.createElement('button');
+    sendBtn.className = 'btn';
+    sendBtn.textContent = 'Send Message';
+    sendBtn.addEventListener('click', () => {
+      const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n[Your Name]`;
+      sendMessage(autoMessage, conn);
     });
 
     li.appendChild(viewBtn);
     li.appendChild(editBtn);
+    li.appendChild(sendBtn);
     connectionsList.appendChild(li);
   });
 }
@@ -154,10 +163,79 @@ function openMessageEditor(connection, liElement) {
 }
 
 /**
- * Simulates sending a referral message.
+ * Automatically sends a referral message to the connection on LinkedIn.
+ * Instead of showing an alert, this function opens the connection's LinkedIn URL
+ * and injects a script to click the "Message" button, fill in the message, and click send.
  */
 function sendMessage(message, connection) {
-  const fullName = connection["First Name"] + " " + connection["Last Name"];
-  alert(`Message to ${fullName}:\n\n${message}`);
-  document.getElementById('messageEditor').style.display = 'none';
+  chrome.tabs.create({ url: connection["URL"] }, (tab) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function: autoSendLinkedInMessage,
+      args: [message]
+    });
+  });
 }
+
+function autoSendLinkedInMessage(message) {
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  async function run() {
+    // Wait for the page to fully load.
+    if (document.readyState !== 'complete') {
+      await sleep(2000);
+    }
+    // Find and click the "Message" button (adjust selector as needed).
+    const messageButton = document.querySelector('button[aria-label*="Message"]');
+    if (!messageButton) {
+      console.error("Message button not found");
+      return;
+    }
+    messageButton.click();
+    
+    // Wait for the messaging modal to appear.
+    await sleep(2000);
+    
+    // Locate the message input (LinkedIn often uses a contenteditable div).
+    let messageBox = document.querySelector('div.msg-form__contenteditable');
+    if (!messageBox) {
+      // Fallback to a textarea if available.
+      messageBox = document.querySelector('textarea');
+    }
+    if (!messageBox) {
+      console.error("Message input not found");
+      return;
+    }
+    
+    messageBox.focus();
+    
+    // Use execCommand to simulate user typing.
+    if (document.queryCommandSupported && document.queryCommandSupported("insertText")) {
+      document.execCommand("insertText", false, message);
+    } else {
+      messageBox.innerText = message;
+      messageBox.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    // Dispatch a keyup event to trigger any LinkedIn handlers.
+    messageBox.dispatchEvent(new Event('keyup', { bubbles: true }));
+    
+    await sleep(1000);
+    
+    // Find and click the send button (selector may need adjustment).
+    const sendButton = document.querySelector('button.msg-form__send-button');
+    if (!sendButton) {
+      console.error("Send button not found");
+      return;
+    }
+    sendButton.click();
+    
+    // Wait a moment and then ask the background script to close this tab.
+    await sleep(1000);
+    chrome.runtime.sendMessage({ action: "closeTab" });
+  }
+  run();
+}
+
