@@ -2,33 +2,29 @@
 <html>
   <head>
     <title>Referrably Popup</title>
-    <!-- Use a modern, clean font -->
-    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap" rel="stylesheet">
+    <!-- Use Montserrat from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
     <style>
       /* Overall Page Style */
       html, body {
         margin: 0;
         padding: 0;
-        background: #f0f2f5; /* Soft background */
-        font-family: 'Inter', sans-serif;
+        background: #F1F8F4; /* Off-White background */
+        font-family: 'Montserrat', "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
-
       /* Container with a white card background */
       .container {
-        /* Adjust the width to your preference */
-        width: 420px; 
-        margin: 20px auto;
+        width: 420px;
+        margin: 0px 20px 20px 20px auto; /* No extra top margin */
         background-color: #fff;
-        border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         overflow: hidden;
       }
-
-      /* Header with a subtle gradient background */
+      /* Header with a dark green gradient */
       header {
-        background: linear-gradient(45deg, #5567DD, #00c6ff);
-        color: #fff;
-        padding: 16px;
+        background: linear-gradient(45deg, #1B5E20, #2E7D32);
+        color: #FFFFFF;
+        padding: 20px;
         text-align: center;
       }
       header h1 {
@@ -36,17 +32,15 @@
         font-size: 24px;
         font-weight: 600;
       }
-
-      /* Company Info */
+      /* Company Info Banner (searched company) */
       #jobInfo {
         text-align: center;
         padding: 16px;
-        font-size: 18px;
-        font-weight: 500;
-        color: #333;
-        border-bottom: 1px solid #eee;
+        font-size: 22px;
+        font-weight: bold;
+        color: #1B5E20;
+        border-bottom: 1px solid #C8E6C9;
       }
-
       /* Connection List */
       ul#connections {
         list-style: none;
@@ -55,32 +49,19 @@
       }
       ul#connections li.connection {
         padding: 16px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #E0E0E0;
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
-      /* Last connection item: remove bottom border */
       ul#connections li.connection:last-child {
         border-bottom: none;
       }
-
-      /* Connection Name + Company */
-      .connection-info {
-        font-size: 16px;
-        font-weight: 500;
-        color: #444;
-      }
-      .connection-company {
-        color: #777;
-        font-size: 14px;
-      }
-
       /* Buttons */
       .btn {
         display: inline-block;
-        background: #5567DD;
-        color: #fff;
+        background: #1B5E20;
+        color: #FFFFFF;
         border: none;
         border-radius: 6px;
         padding: 8px 14px;
@@ -89,9 +70,8 @@
         transition: background 0.3s ease;
       }
       .btn:hover {
-        background: #4454b2; /* Slightly darker on hover */
+        background: #255D27;
       }
-
       /* Message Editor */
       #messageEditor {
         display: none;
@@ -101,7 +81,7 @@
         margin: 0 0 8px 0;
         font-size: 16px;
         font-weight: 600;
-        color: #333;
+        color: #333333;
       }
       #messageText {
         width: 100%;
@@ -110,12 +90,11 @@
         border-radius: 6px;
         padding: 8px;
         resize: vertical;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Montserrat', "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
       #sendMessageBtn, #cancelEditBtn {
         margin-top: 10px;
       }
-      /* Space out the buttons in the editor */
       #sendMessageBtn {
         margin-right: 8px;
       }
@@ -126,13 +105,10 @@
       <header>
         <h1>Referrably</h1>
       </header>
-
       <div id="jobInfo">Loading...</div>
-
       <ul id="connections">
-        <!-- Connection items inserted here by popup.js -->
+        <!-- Connection items will be inserted here by popup.js -->
       </ul>
-
       <!-- Message Editor -->
       <div id="messageEditor">
         <h3>Edit Message</h3>
@@ -141,7 +117,6 @@
         <button id="cancelEditBtn" class="btn">Cancel</button>
       </div>
     </div>
-
     <script src="popup.js"></script>
   </body>
 </html>
