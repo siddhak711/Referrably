@@ -135,8 +135,10 @@
           cursor: pointer;
         `;
         tooltip.addEventListener('click', () => {
-          alert('Open the extension popup to see your referral options.');
+          chrome.runtime.sendMessage({ action: "openPopup" });
         });
+        
+        
         document.body.appendChild(tooltip);
       }
 
