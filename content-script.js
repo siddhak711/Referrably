@@ -30,7 +30,6 @@
     return cleaned1.includes(cleaned2) || cleaned2.includes(cleaned1);
   }
 
-
   // ------------------------------------------------------------
   //                DETECT COMPANY NAME PER SITE
   // ------------------------------------------------------------
@@ -39,6 +38,7 @@
 
     // ------------------ Indeed ------------------ //
     if (window.location.href.includes('indeed.com')) {
+      // Existing method 1: Check for .jobsearch-InlineCompanyRating
       const companyContainer = document.querySelector('.jobsearch-InlineCompanyRating');
       if (companyContainer) {
         const spanEl = companyContainer.querySelector('span');
@@ -46,6 +46,7 @@
           companyName = spanEl.innerText.trim();
         }
       }
+      // Existing method 2: Check for a link containing "/cmp/"
       if (!companyName) {
         const cmpLink = document.querySelector('a[href*="/cmp/"]');
         if (cmpLink) {
@@ -54,8 +55,15 @@
           companyName = label || cmpLink.innerText.trim();
         }
       }
+      // Additional method: Use XPath for the new Indeed company page layout.
+      if (!companyName && document.getElementById('jobsearch-ViewjobPaneWrapper')) {
+        const xpath = '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div[2]/div/div/div[1]/div[1]/span/a';
+        const xpathResult = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        if (xpathResult.singleNodeValue) {
+          companyName = xpathResult.singleNodeValue.textContent.trim();
+        }
+      }
     }
-
     // ------------------ LinkedIn ------------------ //
     else if (window.location.href.includes('linkedin.com/jobs')) {
       /**
@@ -92,7 +100,6 @@
         }
       }
     }
-
     // ------------------ Glassdoor ------------------ //
     else if (window.location.href.includes('glassdoor.com')) {
       // Example placeholder; update the selector if needed.
@@ -118,7 +125,7 @@
       const relevant = connections.filter(conn => {
         if (!conn["Company"]) return false;
         return isMatchingCompany(conn["Company"], company);
-      });      
+      });
 
       let tooltip = document.getElementById('referrably-tooltip');
       if (!tooltip) {
@@ -158,8 +165,6 @@
         
         document.body.appendChild(tooltip);
       }
-      
-
 
       if (relevant.length > 0) {
         tooltip.innerText = `Referrably: Found ${relevant.length} referral option(s) for ${company}!`;
