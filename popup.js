@@ -85,14 +85,13 @@ function displayResults(finalCompany, relevantConnections) {
   relevantConnections.forEach(conn => {
     const fullName = conn["First Name"] + " " + conn["Last Name"];
     const company = conn["Company"] || "";
-    const position = conn["Position"] || "";
     const li = document.createElement('li');
     li.className = 'connection';
     
     // Display the full name and below it "Company - Position"
     li.innerHTML = `
       <h2 style="font-size:18px; margin:0;"><strong>${fullName}</strong></h2>
-      <p style="font-size:16px; margin:0;">${company} - ${position}</p>
+      <p style="font-size:16px; margin:0;">${company} - ${conn["Position"] || ''}</p>
     `;
     
     // "View Profile" button.
@@ -115,7 +114,7 @@ function displayResults(finalCompany, relevantConnections) {
       openMessageEditor(conn, li);
     });
     
-    // New "Send Message" button for one-click messaging.
+    // Individual "Send Message" button.
     const sendBtn = document.createElement('button');
     sendBtn.className = 'btn';
     sendBtn.textContent = 'Send Message';
@@ -124,7 +123,6 @@ function displayResults(finalCompany, relevantConnections) {
         const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
         sendMessage(autoMessage, conn);
       });
-      
     });
 
     li.appendChild(viewBtn);
@@ -132,7 +130,33 @@ function displayResults(finalCompany, relevantConnections) {
     li.appendChild(sendBtn);
     connectionsList.appendChild(li);
   });
+
+  // If multiple referrals are available, add a global "Send Message to All" button.
+  if (relevantConnections.length > 1) {
+    const sendAllBtn = document.createElement('button');
+    sendAllBtn.className = 'btn';
+    sendAllBtn.textContent = 'Send Message to All';
+    sendAllBtn.style.display = 'block';
+    sendAllBtn.style.margin = '10px auto'; // center the button
+
+    sendAllBtn.addEventListener('click', () => {
+      getUserFullName((userName) => {
+        relevantConnections.forEach(conn => {
+          const fullName = conn["First Name"] + " " + conn["Last Name"];
+          const company = conn["Company"] || finalCompany;
+          const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+          sendMessage(autoMessage, conn);
+        });
+      });
+    });
+
+    // Insert the global button before the message editor element.
+    const container = document.querySelector('.container');
+    const messageEditor = document.getElementById('messageEditor');
+    container.insertBefore(sendAllBtn, messageEditor);
+  }
 }
+
 
 /**
  * Opens the message editor inline by moving the #messageEditor element
