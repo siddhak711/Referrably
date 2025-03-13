@@ -1,3 +1,16 @@
+// Update file status on page load
+document.addEventListener('DOMContentLoaded', () => {
+  chrome.storage.local.get('connectionsData', (result) => {
+    const fileStatus = document.getElementById('fileStatus');
+    if (result.connectionsData && result.connectionsData.length > 0) {
+      fileStatus.textContent = "Connections file already uploaded. Upload a new file to replace it.";
+    } else {
+      fileStatus.textContent = "No connections file uploaded yet.";
+    }
+  });
+});
+
+// Existing file upload code with an update to the status message after a successful upload.
 document.getElementById('uploadBtn').addEventListener('click', async () => {
   const fileInput = document.getElementById('csvFileInput');
   const file = fileInput.files[0];
@@ -22,6 +35,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
       console.log("Parsed Connections:", connectionsArray);
       chrome.storage.local.set({ connectionsData: connectionsArray }, () => {
         alert('Connections CSV uploaded and saved successfully!');
+        document.getElementById('fileStatus').textContent = "Connections file already uploaded. Upload a new file to replace it.";
       });
     },
     error: function(err) {
@@ -31,6 +45,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
   });
 });
 
+// Existing code for saving the user name.
 document.getElementById('saveNameBtn').addEventListener('click', () => {
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();

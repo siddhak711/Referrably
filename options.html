@@ -37,6 +37,10 @@
         font-size: 18px;
         font-weight: 500;
       }
+      p#fileStatus {
+        font-style: italic;
+        color: #555;
+      }
       input[type="file"], input[type="text"] {
         width: 100%;
         padding: 8px;
@@ -71,9 +75,10 @@
         <h1>Referrably Options</h1>
       </header>
       <div class="content">
-        <h2>Upload Your LinkedIn Connections</h2>
+        <h2>Upload Your Connections File</h2>
+        <p id="fileStatus">No connections file uploaded yet.</p>
         <input type="file" id="csvFileInput" accept=".csv" />
-        <button id="uploadBtn">Upload</button>
+        <button id="uploadBtn">Upload New Connections File</button>
         
         <h2>Set Your Name</h2>
         <label for="firstName">First Name:</label>
