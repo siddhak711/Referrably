@@ -30,3 +30,19 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
     }
   });
 });
+
+document.getElementById('saveNameBtn').addEventListener('click', () => {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  
+  if (!firstName || !lastName) {
+    alert('Please enter both your first and last name.');
+    return;
+  }
+  
+  const fullName = firstName + " " + lastName;
+  
+  chrome.storage.local.set({ userFullName: fullName }, () => {
+    alert('Name saved successfully!');
+  });
+});

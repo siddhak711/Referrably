@@ -120,8 +120,11 @@ function displayResults(finalCompany, relevantConnections) {
     sendBtn.className = 'btn';
     sendBtn.textContent = 'Send Message';
     sendBtn.addEventListener('click', () => {
-      const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n[Your Name]`;
-      sendMessage(autoMessage, conn);
+      getUserFullName((userName) => {
+        const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+        sendMessage(autoMessage, conn);
+      });
+      
     });
 
     li.appendChild(viewBtn);
@@ -147,9 +150,13 @@ function openMessageEditor(connection, liElement) {
   // Append the editor to the specific <li> element.
   liElement.appendChild(editorDiv);
   editorDiv.style.display = 'block';
-
+  
   const fullName = connection["First Name"] + " " + connection["Last Name"];
-  messageText.value = `Hi ${fullName},\n\nI'm interested in a referral at ${connection["Company"]}. Would you be open to connecting or providing some advice?\n\nThanks,\n[Your Name]`;
+  
+  // Retrieve user name from storage and set the message text.
+  getUserFullName((userName) => {
+    messageText.value = `Hi ${fullName},\n\nI'm interested in a referral at ${connection["Company"]}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+  });
 
   // Save connection URL for further actions.
   editorDiv.dataset.connectionUrl = connection["URL"];
@@ -237,5 +244,11 @@ function autoSendLinkedInMessage(message) {
     chrome.runtime.sendMessage({ action: "closeTab" });
   }
   run();
+}
+
+function getUserFullName(callback) {
+  chrome.storage.local.get('userFullName', (result) => {
+    callback(result.userFullName || "[Your Name]");
+  });
 }
 
