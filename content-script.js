@@ -128,19 +128,38 @@
           position: fixed;
           bottom: 20px;
           right: 20px;
-          background-color: #FFEB3B;
-          padding: 10px;
-          border-radius: 5px;
+          background-color: #1B5E20;
+          color: #FFFFFF;
+          padding: 12px 16px;
+          border: 2px solid #1B5E20;
+          border-radius: 8px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
           z-index: 999999;
+          font-family: 'Montserrat', "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 14px;
           cursor: pointer;
+          max-width: 300px;
+          transition: transform 0.2s ease, background-color 0.2s ease;
         `;
+        
+        // Add hover effects to create a subtle pop effect
+        tooltip.addEventListener('mouseover', () => {
+          tooltip.style.transform = 'scale(1.05)';
+          tooltip.style.backgroundColor = '#2E7D32'; // slightly lighter green on hover
+        });
+        tooltip.addEventListener('mouseout', () => {
+          tooltip.style.transform = 'scale(1)';
+          tooltip.style.backgroundColor = '#1B5E20';
+        });
+        
         tooltip.addEventListener('click', () => {
           chrome.runtime.sendMessage({ action: "openPopup" });
         });
         
-        
         document.body.appendChild(tooltip);
       }
+      
+
 
       if (relevant.length > 0) {
         tooltip.innerText = `Referrably: Found ${relevant.length} referral option(s) for ${company}!`;
