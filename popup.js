@@ -11,7 +11,7 @@ function isMatchingCompany(company1, company2) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Get the user’s highlighted text from the active tab
+  // 1. Get the user's highlighted text from the active tab
   const highlightedText = await getHighlightedText();
 
   // 2. Fetch stored CSV data (connectionsData) and the current job company (if any)
@@ -120,7 +120,7 @@ function displayResults(finalCompany, relevantConnections) {
     sendBtn.textContent = 'Send Message';
     sendBtn.addEventListener('click', () => {
       getUserFullName((userName) => {
-        const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+        const autoMessage = generatePersonalizedMessage(conn, userName, company);
         sendMessage(autoMessage, conn);
       });
     });
@@ -142,9 +142,8 @@ function displayResults(finalCompany, relevantConnections) {
     sendAllBtn.addEventListener('click', () => {
       getUserFullName((userName) => {
         relevantConnections.forEach(conn => {
-          const fullName = conn["First Name"] + " " + conn["Last Name"];
           const company = conn["Company"] || finalCompany;
-          const autoMessage = `Hi ${fullName},\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+          const autoMessage = generatePersonalizedMessage(conn, userName, company);
           sendMessage(autoMessage, conn);
         });
       });
@@ -156,7 +155,6 @@ function displayResults(finalCompany, relevantConnections) {
     container.insertBefore(sendAllBtn, messageEditor);
   }
 }
-
 
 /**
  * Opens the message editor inline by moving the #messageEditor element
@@ -175,11 +173,10 @@ function openMessageEditor(connection, liElement) {
   liElement.appendChild(editorDiv);
   editorDiv.style.display = 'block';
   
-  const fullName = connection["First Name"] + " " + connection["Last Name"];
-  
   // Retrieve user name from storage and set the message text.
   getUserFullName((userName) => {
-    messageText.value = `Hi ${fullName},\n\nI'm interested in a referral at ${connection["Company"]}. Would you be open to connecting or providing some advice?\n\nThanks,\n${userName}`;
+    const defaultMessage = generatePersonalizedMessage(connection, userName, connection["Company"]);
+    messageText.value = defaultMessage;
   });
 
   // Save connection URL for further actions.
@@ -274,5 +271,32 @@ function getUserFullName(callback) {
   chrome.storage.local.get('userFullName', (result) => {
     callback(result.userFullName || "[Your Name]");
   });
+}
+
+/**
+ * Generates a personalized message based on similarities between the user and connection
+ */
+function generatePersonalizedMessage(connection, userName, company) {
+  const connectionFirstName = connection["First Name"];
+  const connectionPosition = connection["Position"] || "";
+  
+  // Extract the first name from the user's full name
+  const userFirstName = userName.split(" ")[0];
+  
+  // Create a personalized message based on available information
+  let message = `Hi ${connectionFirstName}`;
+  
+  // Add a personal touch based on position if available
+  if (connectionPosition) {
+    message += `, I noticed you're a ${connectionPosition}`;
+  }
+  
+  // Add the main request
+  message += `,\n\nI'm interested in a referral at ${company}. Would you be open to connecting or providing some advice?`;
+  
+  // Add a friendly closing
+  message += `\n\nThanks,\n${userFirstName}`;
+  
+  return message;
 }
 
